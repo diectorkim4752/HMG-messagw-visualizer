@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public enum StateOrderMode
 {
-    Sequential,  // 순서대로 (N -> D -> C)
+    Sequential,  // 순서대로 (C -> D -> N)
     Random       // 랜덤하게
 }
 
@@ -39,8 +39,8 @@ public class UIMovementController : MonoBehaviour
     
     private float lastSpawnTime;
     private int spawnedCount = 0;
-    private int currentStateIndex = 0;       // 현재 State 인덱스 (0=N, 1=D, 2=C)
-    private State[] stateSequence = { State.N, State.D, State.C }; // State 순서
+    private int currentStateIndex = 0;       // 현재 State 인덱스 (0=C, 1=D, 2=N)
+    private State[] stateSequence = { State.C, State.D, State.N }; // State 순서
     private List<State> usedStates = new List<State>(); // 랜덤 모드에서 사용된 State들 추적
     
     void Start()
@@ -133,7 +133,7 @@ public class UIMovementController : MonoBehaviour
             switch (stateOrderMode)
             {
                 case StateOrderMode.Sequential:
-                    // 순서대로 (N -> D -> C)
+                    // 순서대로 (C -> D -> N)
                     nextState = stateSequence[currentStateIndex];
                     currentStateIndex = (currentStateIndex + 1) % stateSequence.Length;
                     break;
