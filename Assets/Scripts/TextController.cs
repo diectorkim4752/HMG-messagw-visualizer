@@ -18,6 +18,9 @@ public enum State
 
 public class TextController : MonoBehaviour
 {
+    [Header("강제 모드 설정")]
+    [SerializeField] private bool forceMax20Mode = false;  // 체크하면 무조건 10-20자용 모드 사용
+    
     [Header("현재 상태")]
     public TextMode currentMode;
     public State currentState;
@@ -114,6 +117,13 @@ public class TextController : MonoBehaviour
     /// </summary>
     private TextMode GetTextMode(string text)
     {
+        // 강제 Max20 모드가 활성화되어 있으면 무조건 Max20 모드 반환
+        if (forceMax20Mode)
+        {
+            Debug.Log("강제 Max20 모드 활성화: 글자수와 관계없이 Max20 모드 사용");
+            return TextMode.Max20;
+        }
+        
         if (string.IsNullOrEmpty(text)) return TextMode.Under10;
         
         int length = text.Length;

@@ -46,7 +46,7 @@ public class JsonLoader : MonoBehaviour
     public bool autoSpawnEnabled = true;
     [Tooltip("메시지를 생성하는 주기(초)입니다.")]
     public float spawnInterval = 10.0f;
-
+    
     [Header("읽어온 메시지 목록")]
     [Tooltip("JSON 파일에서 읽어온 최종 메시지 목록입니다.")]
     public List<MessageInfo> loadedMessages;
@@ -99,7 +99,7 @@ public class JsonLoader : MonoBehaviour
         {
             uiMovementControllers.Clear();
         }
-
+        
         // 모든 자식 오브젝트에서 UIMovementController 컴포넌트를 찾습니다.
         UIMovementController[] controllers = GetComponentsInChildren<UIMovementController>();
         
@@ -283,7 +283,7 @@ public class JsonLoader : MonoBehaviour
             yield return new WaitForSeconds(spawnInterval);
         }
     }
-
+    
     /// <summary>
     /// 실제로 5개의 메시지를 순서대로, 한 프레임에 하나씩 생성하는 코루틴입니다.
     /// </summary>
