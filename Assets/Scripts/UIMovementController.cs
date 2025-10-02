@@ -1,17 +1,21 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using TMPro;
 
-public enum StateOrderMode
+public enum DesignOrderMode
 {
-    Sequential,  // 순서대로 (C -> D -> N)
+    Sequential,  // 순서대로 (AType -> BType)
     Random       // 랜덤하게
 }
 
 public class UIMovementController : MonoBehaviour
 {
-    [Header("State 순서 설정")]
-    public StateOrderMode stateOrderMode = StateOrderMode.Sequential;  // State 순서 모드
+    [Header("디버그 설정")]
+    public bool showDebugLogs = false;  // 디버그 로그 표시 여부
+    
+    [Header("디자인 순서 설정")]
+    public DesignOrderMode designOrderMode = DesignOrderMode.Sequential;  // 디자인 순서 모드
     
     [Header("이동 설정")]
     public float moveSpeed = 200f;           // 이동 속도 (픽셀/초)
@@ -39,16 +43,27 @@ public class UIMovementController : MonoBehaviour
     
     private float lastSpawnTime;
     private int spawnedCount = 0;
-    private int currentStateIndex = 0;       // 현재 State 인덱스 (0=C, 1=D, 2=N)
-    private State[] stateSequence = { State.C, State.D, State.N }; // State 순서
-    private List<State> usedStates = new List<State>(); // 랜덤 모드에서 사용된 State들 추적
+    private int currentDesignIndex = 0;       // 현재 디자인 인덱스 (0=AType, 1=BType)
+    private DesignType[] designSequence = { DesignType.AType, DesignType.BType }; // 디자인 순서
+    private List<DesignType> usedDesigns = new List<DesignType>(); // 랜덤 모드에서 사용된 디자인들 추적
+    
+    /// <summary>
+    /// 조건부 디버그 로그
+    /// </summary>
+    private void LogDebug(string message)
+    {
+        if (showDebugLogs)
+        {
+            Debug.Log($"[UIMovementController] {message}");
+        }
+    }
     
     void Start()
     {
         lastSpawnTime = Time.time;
         
         // 현재 설정 출력
-        Debug.Log($"현재 설정 - 제거시간: {destroyTime}초, 이동속도: {moveSpeed}, 이동방향: {moveDirection}");
+        LogDebug($"현재 설정 - 제거시간: {destroyTime}초, 이동속도: {moveSpeed}, 이동방향: {moveDirection}");
     }
     
     /// <summary>
@@ -56,7 +71,7 @@ public class UIMovementController : MonoBehaviour
     /// </summary>
     void OnValidate()
     {
-        Debug.Log($"설정 변경됨 - 제거시간: {destroyTime}초, 이동속도: {moveSpeed}, 이동방향: {moveDirection}");
+        LogDebug($"설정 변경됨 - 제거시간: {destroyTime}초, 이동속도: {moveSpeed}, 이동방향: ({moveDirection.x:F2}, {moveDirection.y:F2})");
     }
     
     void Update()
@@ -68,7 +83,7 @@ public class UIMovementController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 SpawnUIObject();
-                Debug.Log("스페이스바 입력: UI 객체 생성");
+                LogDebug("스페이스바 입력: UI 객체 생성");
             }
         }
         
@@ -118,7 +133,7 @@ public class UIMovementController : MonoBehaviour
     }
     
     /// <summary>
-    /// TextController 설정
+    /// TextController 설정 (TextMeshPro 지원)
     /// </summary>
     private void SetupTextController(GameObject uiObject)
     {
@@ -127,30 +142,30 @@ public class UIMovementController : MonoBehaviour
         
         if (textController != null)
         {
-            // 1. 선택된 모드에 따라 다음 State를 결정합니다.
-            State nextState;
+            // 1. 선택된 모드에 따라 다음 디자인 타입을 결정합니다.
+            DesignType nextDesignType;
             
-            switch (stateOrderMode)
+            switch (designOrderMode)
             {
-                case StateOrderMode.Sequential:
-                    // 순서대로 (C -> D -> N)
-                    nextState = stateSequence[currentStateIndex];
-                    currentStateIndex = (currentStateIndex + 1) % stateSequence.Length;
+                case DesignOrderMode.Sequential:
+                    // 순서대로 (AType -> BType)
+                    nextDesignType = designSequence[currentDesignIndex];
+                    currentDesignIndex = (currentDesignIndex + 1) % designSequence.Length;
                     break;
                     
-                case StateOrderMode.Random:
+                case DesignOrderMode.Random:
                     // 랜덤하게
-                    nextState = GetRandomState();
+                    nextDesignType = GetRandomDesignType();
                     break;
                     
                 default:
-                    nextState = State.N;
+                    nextDesignType = DesignType.AType;
                     break;
             }
             
-            // 2. TextController의 State를 먼저 설정합니다.
-            //    SetText가 이 State를 사용해서 올바른 자식 오브젝트를 활성화합니다.
-            textController.currentState = nextState;
+            // 2. TextController의 디자인 타입을 먼저 설정합니다.
+            //    SetText가 이 디자인 타입을 사용해서 올바른 자식 오브젝트를 활성화합니다.
+            textController.currentDesignType = nextDesignType;
 
             // 3. 메시지 텍스트 결정
             string finalNameText = nameText;
@@ -166,11 +181,12 @@ public class UIMovementController : MonoBehaviour
                 Debug.Log($"할당된 메시지 사용: '{selectedMessage.name}' - '{selectedMessage.content}'");
             }
 
-            // 4. 이름과 내용을 설정합니다. 이 메서드는 글자 수에 맞는 모드를 자동으로 설정하고,
-            //    State에 맞는 화면을 갱신하는 것까지 처리합니다.
+            // 4. 이름과 내용을 설정합니다. 이 메서드는 Max20 모드를 자동으로 설정하고,
+            //    디자인 타입에 맞는 화면을 갱신하는 것까지 처리합니다.
+            //    TextController는 TextMeshPro를 사용하여 텍스트를 렌더링합니다.
             textController.SetText(finalNameText, finalContentText);
             
-            Debug.Log($"TextController 설정 완료: '{uiObject.name}'에 이름='{finalNameText}', 내용='{finalContentText}', State='{nextState}' (모드: {stateOrderMode})를 설정했습니다.");
+            Debug.Log($"TextController 설정 완료: '{uiObject.name}'에 이름='{finalNameText}', 내용='{finalContentText}', 디자인='{nextDesignType}' (모드: {designOrderMode}, 순서: {currentDesignIndex})를 설정했습니다.");
         }
         else
         {
@@ -291,13 +307,13 @@ public class UIMovementController : MonoBehaviour
         Debug.Log($"생성 간격: {spawnInterval}초");
         Debug.Log($"UI 프리팹: {(uiPrefab != null ? uiPrefab.name : "할당되지 않음")}");
         
-        // State 정보를 안전하게 가져오기
-        string stateInfo = "N/A";
-        if (stateSequence != null && stateSequence.Length > 0)
+        // 디자인 정보를 안전하게 가져오기
+        string designInfo = "N/A";
+        if (designSequence != null && designSequence.Length > 0)
         {
-            stateInfo = stateSequence[currentStateIndex % stateSequence.Length].ToString();
+            designInfo = designSequence[currentDesignIndex % designSequence.Length].ToString();
         }
-        Debug.Log($"현재 State: {stateInfo} (모드: {stateOrderMode})");
+        Debug.Log($"현재 디자인: {designInfo} (모드: {designOrderMode})");
 
         Debug.Log($"할당된 메시지 사용: {(useAssignedMessages ? "활성화" : "비활성화")}");
         Debug.Log($"JsonLoader 관리: {(isManagedByJsonLoader ? "활성화" : "비활성화")}");
@@ -305,16 +321,16 @@ public class UIMovementController : MonoBehaviour
     }
     
     /// <summary>
-    /// State 인덱스 리셋
+    /// 디자인 인덱스 리셋
     /// </summary>
-    [ContextMenu("State 인덱스 리셋")]
-    public void ResetStateIndex()
+    [ContextMenu("디자인 인덱스 리셋")]
+    public void ResetDesignIndex()
     {
-        currentStateIndex = 0;
-        usedStates.Clear(); // 랜덤 모드 리스트도 초기화
+        currentDesignIndex = 0;
+        usedDesigns.Clear(); // 랜덤 모드 리스트도 초기화
         
-        string nextStateInfo = stateSequence.Length > 0 ? stateSequence[0].ToString() : "N/A";
-        Debug.Log($"State 인덱스 리셋 완료. 다음 순차 State는 '{nextStateInfo}'이며, 랜덤 모드 리스트도 초기화되었습니다.");
+        string nextDesignInfo = designSequence.Length > 0 ? designSequence[0].ToString() : "N/A";
+        Debug.Log($"디자인 인덱스 리셋 완료. 다음 순차 디자인은 '{nextDesignInfo}'이며, 랜덤 모드 리스트도 초기화되었습니다.");
     }
     
     /// <summary>
@@ -343,23 +359,71 @@ public class UIMovementController : MonoBehaviour
         Debug.Log("==========================");
     }
     
-    private State GetRandomState()
+    /// <summary>
+    /// Sequential 모드 테스트 - 5개 오브젝트 생성
+    /// </summary>
+    [ContextMenu("Sequential 모드 테스트 (5개 생성)")]
+    public void TestSequentialMode()
     {
-        // 모든 State를 사용했으면 리스트 초기화
-        if (usedStates.Count >= stateSequence.Length)
+        Debug.Log("=== Sequential 모드 테스트 시작 ===");
+        Debug.Log($"현재 디자인 순서 모드: {designOrderMode}");
+        Debug.Log($"디자인 시퀀스: {string.Join(" -> ", designSequence)}");
+        Debug.Log($"현재 디자인 인덱스: {currentDesignIndex}");
+        
+        // 5개 오브젝트 생성
+        for (int i = 0; i < 5; i++)
         {
-            usedStates.Clear();
-            Debug.Log("모든 State를 사용했으므로 리스트를 초기화합니다.");
+            SpawnUIObject();
+            Debug.Log($"--- {i + 1}번째 오브젝트 생성 완료 ---");
         }
         
-        State randomState;
+        Debug.Log("=== Sequential 모드 테스트 완료 ===");
+    }
+    
+    /// <summary>
+    /// TextMeshPro 지원 확인
+    /// </summary>
+    [ContextMenu("TextMeshPro 지원 확인")]
+    public void CheckTextMeshProSupport()
+    {
+        Debug.Log("=== TextMeshPro 지원 확인 ===");
+        Debug.Log("UIMovementController는 TextController를 통해 TextMeshPro를 사용합니다.");
+        Debug.Log("TextController.cs에서 TextMeshProUGUI 배열을 사용하여 텍스트를 렌더링합니다.");
+        Debug.Log("프리팹의 Text 컴포넌트를 TextMeshPro - Text (UI)로 교체해야 합니다.");
+        Debug.Log("================================");
+    }
+
+    [ContextMenu("디버그 로그 활성화")]
+    public void EnableDebugLogs()
+    {
+        showDebugLogs = true;
+        Debug.Log("✅ UIMovementController 디버그 로그가 활성화되었습니다.");
+    }
+
+    [ContextMenu("디버그 로그 비활성화")]
+    public void DisableDebugLogs()
+    {
+        showDebugLogs = false;
+        Debug.Log("❌ UIMovementController 디버그 로그가 비활성화되었습니다.");
+    }
+    
+    private DesignType GetRandomDesignType()
+    {
+        // 모든 디자인을 사용했으면 리스트 초기화
+        if (usedDesigns.Count >= designSequence.Length)
+        {
+            usedDesigns.Clear();
+            Debug.Log("모든 디자인을 사용했으므로 리스트를 초기화합니다.");
+        }
+        
+        DesignType randomDesignType;
         do
         {
-            randomState = stateSequence[Random.Range(0, stateSequence.Length)];
-        } while (usedStates.Contains(randomState));
+            randomDesignType = designSequence[Random.Range(0, designSequence.Length)];
+        } while (usedDesigns.Contains(randomDesignType));
         
-        usedStates.Add(randomState);
-        return randomState;
+        usedDesigns.Add(randomDesignType);
+        return randomDesignType;
     }
 }
 

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 722ddb209d99f3b408cb8a3944aa3f79
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 267889
+  packageName: Simple Emoji for TextMesh Pro
+  packageVersion: 1.3
+  assetPath: Assets/SimpleEmojiTMP/Example/Example.unity
+  uploadId: 734370
