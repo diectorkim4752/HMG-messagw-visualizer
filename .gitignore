@@ -7,6 +7,35 @@
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 
+# Unity package manager
+[Pp]ackages/manifest.json
+[Pp]ackages/packages-lock.json
+
+# Unity project settings (일부만 포함)
+[Pp]rojectSettings/EditorBuildSettings.asset
+[Pp]rojectSettings/EditorSettings.asset
+[Pp]rojectSettings/Physics2DSettings.asset
+[Pp]rojectSettings/ProjectVersion.txt
+[Pp]rojectSettings/QualitySettings.asset
+[Pp]rojectSettings/TagManager.asset
+[Pp]rojectSettings/TimeManager.asset
+[Pp]rojectSettings/UnityConnectSettings.asset
+[Pp]rojectSettings/VFXManager.asset
+[Pp]rojectSettings/XRSettings.asset
+[Pp]rojectSettings/SceneTemplateSettings.json
+[Pp]rojectSettings/ShaderGraphSettings.asset
+[Pp]rojectSettings/TimelineSettings.asset
+[Pp]rojectSettings/MultiplayerManager.asset
+
+# TextMesh Pro (유니티 기본 패키지)
+Assets/TextMesh Pro/
+
+# SimpleEmojiTMP (에셋 스토어 패키지)
+Assets/SimpleEmojiTMP/
+
+# SimpleEncryption (에셋 스토어 패키지)  
+Assets/SimpleEncryption/
+
 # MemoryCaptures can get excessive in size.
 # They also could contain sensitive data
 [Mm]emoryCaptures/

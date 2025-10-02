@@ -1,2 +1,0 @@
-﻿[iamcal/emoji-data] is used under the MIT license:
-  https://github.com/iamcal/emoji-data
