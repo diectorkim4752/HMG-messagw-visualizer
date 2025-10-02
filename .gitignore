@@ -7,9 +7,7 @@
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 
-# Unity package manager
-[Pp]ackages/manifest.json
-[Pp]ackages/packages-lock.json
+# Unity package manager (프로젝트에 포함)
 
 # Unity project settings (일부만 포함)
 [Pp]rojectSettings/EditorBuildSettings.asset
@@ -27,14 +25,7 @@
 [Pp]rojectSettings/TimelineSettings.asset
 [Pp]rojectSettings/MultiplayerManager.asset
 
-# TextMesh Pro (유니티 기본 패키지)
-Assets/TextMesh Pro/
-
-# SimpleEmojiTMP (에셋 스토어 패키지)
-Assets/SimpleEmojiTMP/
-
-# SimpleEncryption (에셋 스토어 패키지)  
-Assets/SimpleEncryption/
+# TextMesh Pro, SimpleEmojiTMP, SimpleEncryption은 프로젝트에 포함
 
 # MemoryCaptures can get excessive in size.
 # They also could contain sensitive data
