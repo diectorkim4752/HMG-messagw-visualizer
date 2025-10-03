@@ -30,10 +30,37 @@ public class JsonLoader : MonoBehaviour
     [System.Serializable]
     private class JsonMessageData
     {
-        public string name;
-        public string story;
-        public string formatted_message;  // 이모지가 포함된 포맷된 메시지
-        // id, timestamp 등 다른 JSON 키는 여기에 선언하지 않으면 파싱 시 자동으로 무시됩니다.
+        public string id;
+        public string author;        // 기존 name에서 변경
+        public string content;       // 기존 formatted_message에서 변경
+        public string timestamp;
+        public string status;
+        public string language;
+        public string created_at;
+        public string updated_at;
+        // story 필드는 새로운 구조에서 제거됨
+    }
+    
+    /// <summary>
+    /// 새로운 JSON 구조의 루트 객체입니다.
+    /// </summary>
+    [System.Serializable]
+    private class JsonRootData
+    {
+        public JsonMetadata metadata;
+        public JsonMessageData[] messages;
+    }
+    
+    /// <summary>
+    /// JSON 메타데이터 구조입니다.
+    /// </summary>
+    [System.Serializable]
+    private class JsonMetadata
+    {
+        public string exportedAt;
+        public int totalCount;
+        public string source;
+        public string version;
     }
 
     [Header("파일 이름 설정")]
@@ -227,18 +254,21 @@ public class JsonLoader : MonoBehaviour
             // --- 이하 파싱 로직은 동일 ---
             try
             {
-                JsonMessageData[] allMessages = JsonHelper.FromJsonArray<JsonMessageData>(jsonString);
+                // 새로운 JSON 구조 파싱
+                JsonRootData rootData = JsonUtility.FromJson<JsonRootData>(jsonString);
 
-                if (allMessages == null || allMessages.Length == 0)
+                if (rootData == null || rootData.messages == null || rootData.messages.Length == 0)
                 {
                     Debug.LogWarning("JSON 파일이 비어있거나 파싱에 실패했습니다.");
                     loadedMessages?.Clear();
                     yield break;
                 }
                 
-                Debug.Log($"총 {allMessages.Length}개의 메시지를 JSON에서 성공적으로 파싱했습니다.");
+                Debug.Log($"메타데이터: {rootData.metadata.source} v{rootData.metadata.version}");
+                Debug.Log($"총 {rootData.metadata.totalCount}개의 메시지를 JSON에서 성공적으로 파싱했습니다.");
 
-                var latestMessages = allMessages.Skip(Math.Max(0, allMessages.Length - messagesToLoadCount));
+                // 최신 메시지들 선택 (배열의 끝에서부터 messagesToLoadCount개)
+                var latestMessages = rootData.messages.Skip(Math.Max(0, rootData.messages.Length - messagesToLoadCount));
                 
                 if (loadedMessages == null)
                 {
@@ -250,8 +280,8 @@ public class JsonLoader : MonoBehaviour
                 {
                     loadedMessages.Add(new MessageInfo
                     {
-                        name = ConvertMultiToSingleCodepoint(messageData.name),
-                        content = ConvertMultiToSingleCodepoint(messageData.formatted_message)  // 이모지 자동 변환
+                        name = ConvertMultiToSingleCodepoint(messageData.author),     // author 필드 사용
+                        content = ConvertMultiToSingleCodepoint(messageData.content)  // content 필드 사용, 이모지 자동 변환
                     });
                 }
                 
@@ -269,6 +299,92 @@ public class JsonLoader : MonoBehaviour
     {
         jsonFileName = "messages.json";
         Debug.Log($"테스트 파일명이 설정되었습니다: {jsonFileName}");
+    }
+    
+    [ContextMenu("새로운 JSON 구조 테스트")]
+    public void TestNewJsonStructure()
+    {
+        Debug.Log("=== 새로운 JSON 구조 테스트 ===");
+        
+        // 제공받은 JSON 구조 예시
+        string testJson = @"{
+  ""metadata"": {
+    ""exportedAt"": ""2025-10-03T18:05:26.448034"",
+    ""totalCount"": 50,
+    ""source"": ""QR Message Wall CMS"",
+    ""version"": ""1.0""
+  },
+  ""messages"": [
+    {
+      ""id"": ""msg_1759480908302_6oqcw4qy3"",
+      ""author"": ""이인정"",
+      ""content"": ""오빠언제와"",
+      ""timestamp"": ""2025-10-03 08:41"",
+      ""status"": ""active"",
+      ""language"": ""ko"",
+      ""created_at"": ""2025-10-03 08:41:48"",
+      ""updated_at"": ""2025-10-03 08:41:48""
+    },
+    {
+      ""id"": ""msg_1758028410129_u1xpbbixa"",
+      ""author"": ""익명의 사용자"",
+      ""content"": ""최고최고 🍎🍎🍎🍎"",
+      ""timestamp"": ""2025-09-16 13:13"",
+      ""status"": ""active"",
+      ""language"": ""ko"",
+      ""created_at"": ""2025-09-16 13:13:30"",
+      ""updated_at"": ""2025-09-16 13:13:30""
+    },
+    {
+      ""id"": ""msg_1758028254995_ua9qjosae"",
+      ""author"": ""익명의 사용자"",
+      ""content"": ""이모티콘도 쓸 수 있네 👍"",
+      ""timestamp"": ""2025-09-16 13:10"",
+      ""status"": ""active"",
+      ""language"": ""ko"",
+      ""created_at"": ""2025-09-16 13:10:55"",
+      ""updated_at"": ""2025-09-16 13:10:55""
+    }
+  ]
+}";
+        
+        try
+        {
+            // 새로운 JSON 구조 파싱 테스트
+            JsonRootData rootData = JsonUtility.FromJson<JsonRootData>(testJson);
+            
+            if (rootData != null && rootData.metadata != null)
+            {
+                Debug.Log($"✅ 메타데이터 파싱 성공:");
+                Debug.Log($"  - Source: {rootData.metadata.source}");
+                Debug.Log($"  - Version: {rootData.metadata.version}");
+                Debug.Log($"  - Total Count: {rootData.metadata.totalCount}");
+                Debug.Log($"  - Exported At: {rootData.metadata.exportedAt}");
+            }
+            
+            if (rootData != null && rootData.messages != null)
+            {
+                Debug.Log($"✅ 메시지 파싱 성공: {rootData.messages.Length}개 메시지");
+                
+                foreach (var message in rootData.messages)
+                {
+                    Debug.Log($"  메시지: {message.author} - {message.content}");
+                    
+                    // 이모지 처리 테스트
+                    string processedContent = ConvertMultiToSingleCodepoint(message.content);
+                    if (processedContent != message.content)
+                    {
+                        Debug.Log($"    → 이모지 처리됨: {processedContent}");
+                    }
+                }
+            }
+            
+            Debug.Log("✅ 새로운 JSON 구조 테스트 완료!");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ JSON 파싱 실패: {e.Message}");
+        }
     }
 
     /// <summary>
@@ -1734,25 +1850,5 @@ public class JsonLoader : MonoBehaviour
             .Replace("🌟", "[별]")
             .Replace("⚙", "[설정]")
             .Replace("⚡", "[번개]");
-    }
-}
-
-/// <summary>
-/// Unity의 JsonUtility로 JSON 배열을 파싱하기 위한 헬퍼 클래스입니다.
-/// </summary>
-public static class JsonHelper
-{
-    public static T[] FromJsonArray<T>(string json)
-    {
-        // JSON 문자열을 {"items": [ ... ]} 형태로 감싸서 파싱합니다.
-        string newJson = "{ \"items\": " + json + "}";
-        Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(newJson);
-        return wrapper.items;
-    }
-
-    [Serializable]
-    private class Wrapper<T>
-    {
-        public T[] items;
     }
 }

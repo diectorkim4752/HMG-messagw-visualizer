@@ -5,6 +5,7 @@
 - **Unity 버전**: 2022.3.62f1
 - **프로젝트 타입**: Unity 2D 프로젝트 (Universal Render Pipeline)
 - **클론 완료일**: 2024년 현재
+- **최근 업데이트**: 2025-10-03 (JSON 구조 v2.0)
 
 ## 프로젝트 구조
 
@@ -27,11 +28,35 @@ Assets/
 
 ## 주요 기능
 
-### 1. 메시지 데이터 관리
+### 1. 메시지 데이터 관리 (v2.0 업데이트)
 - **데이터 소스**: `Assets/StreamingAssets/messages.json`
-- **메시지 구조**: 이름(name), 내용(story), 타임스탬프
+- **새로운 구조**: QR Message Wall CMS 호환
+  ```json
+  {
+    "metadata": {
+      "exportedAt": "2025-10-03T18:05:26.448034",
+      "totalCount": 50,
+      "source": "QR Message Wall CMS",
+      "version": "1.0"
+    },
+    "messages": [
+      {
+        "id": "msg_1759480908302_6oqcw4qy3",
+        "author": "이인정",                    // name → author
+        "content": "오빠언제와",              // formatted_message → content
+        "timestamp": "2025-10-03 08:41",
+        "status": "active",
+        "language": "ko",
+        "created_at": "2025-10-03 08:41:48",
+        "updated_at": "2025-10-03 08:41:48"
+      }
+    ]
+  }
+  ```
+- **하위 호환성**: 기존 JSON 구조도 지원
 - **자동 갱신**: 20초마다 JSON 파일에서 최신 메시지 로드
 - **메시지 생성**: 10초마다 5개 메시지 순차 생성
+- **메타데이터 활용**: 총 메시지 수, 소스, 버전 정보 표시
 
 ### 2. 텍스트 모드 시스템 (간소화)
 - **Max20 고정**: 텍스트 길이와 관계없이 항상 Max20 모드 사용
@@ -330,4 +355,59 @@ Unity 메뉴 → Tools → Emoji → Rebuild Emoji Sprite Asset
    - 3번째: AType (max20Objecta 활성화)
    - 4번째: BType (max20Objectb 활성화)
    - 반복...
+
+## 개발 히스토리
+
+### JSON 구조 v2.0 업데이트 (2025-10-03)
+
+#### 업데이트 배경
+- QR Message Wall CMS와의 호환성을 위해 새로운 JSON 구조 지원 필요
+- 기존 구조와의 하위 호환성 유지 필요
+
+#### 주요 변경사항
+1. **새로운 JSON 구조 지원**:
+   ```json
+   {
+     "metadata": {
+       "exportedAt": "2025-10-03T18:05:26.448034",
+       "totalCount": 50,
+       "source": "QR Message Wall CMS",
+       "version": "1.0"
+     },
+     "messages": [
+       {
+         "id": "msg_1759480908302_6oqcw4qy3",
+         "author": "이인정",                    // name → author
+         "content": "오빠언제와",              // formatted_message → content
+         "timestamp": "2025-10-03 08:41",
+         "status": "active",
+         "language": "ko",
+         "created_at": "2025-10-03 08:41:48",
+         "updated_at": "2025-10-03 08:41:48"
+       }
+     ]
+   }
+   ```
+
+2. **코드 변경사항**:
+   - `JsonRootData`, `JsonMetadata` 클래스 추가
+   - `JsonMessageData` 클래스 필드 업데이트 (name→author, formatted_message→content)
+   - JSON 파싱 로직 개선 (JsonHelper 제거)
+   - 메타데이터 정보 활용 (총 메시지 수, 소스, 버전 표시)
+   - `TestNewJsonStructure()` 테스트 함수 추가
+
+3. **하위 호환성**:
+   - 기존 JSON 배열 구조도 계속 지원
+   - 자동 감지 및 적절한 파싱 방식 선택
+
+#### 테스트 방법
+1. Unity에서 JsonLoader 컴포넌트 선택
+2. Context Menu → "새로운 JSON 구조 테스트" 실행
+3. Context Menu → "StreamingAssets에서 JSON 파일 읽기" 실행
+
+#### 장점
+- QR Message Wall CMS와 완벽 호환
+- 더 풍부한 메시지 정보 (ID, 상태, 언어 등)
+- 메타데이터를 통한 데이터 품질 관리
+- 표준화된 JSON 구조로 확장성 향상
 
