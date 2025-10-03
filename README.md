@@ -6,6 +6,8 @@ Unity 기반의 실시간 메시지 표시 시스템입니다. JSON 파일에서
 [![URP](https://img.shields.io/badge/URP-17.2.0-green.svg)](https://unity.com/urp)
 [![TextMeshPro](https://img.shields.io/badge/TextMeshPro-3.0.7-orange.svg)](https://docs.unity3d.com/Packages/com.unity.textmeshpro@latest)
 
+**📅 마지막 업데이트**: 2025-03-06 (JSON 구조 v2.0)
+
 ---
 
 ## 📋 목차
@@ -553,7 +555,7 @@ UIMovementController.destroyTime = 20f;  // 35초 → 20초
 
 ### 최근 주요 업데이트
 
-#### ✅ JSON 구조 v2.0 업데이트 (2025-10-03)
+#### ✅ JSON 구조 v2.0 업데이트 (2025-03-06)
 - **QR Message Wall CMS 호환 구조** 지원
 - 새로운 필드명: `name` → `author`, `formatted_message` → `content`
 - 메타데이터 정보 활용 (총 메시지 수, 소스, 버전 등)
@@ -651,7 +653,7 @@ chore: 빌드/설정 변경
 
 **프로젝트명**: HMG 메시지 비주얼라이저  
 **Unity 버전**: 2022.3.62f1 LTS  
-**마지막 업데이트**: 2025-10-03 (JSON 구조 v2.0)
+**마지막 업데이트**: 2025-03-06 (JSON 구조 v2.0)
 
 ---
 

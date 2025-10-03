@@ -5,7 +5,7 @@
 - **Unity 버전**: 2022.3.62f1
 - **프로젝트 타입**: Unity 2D 프로젝트 (Universal Render Pipeline)
 - **클론 완료일**: 2024년 현재
-- **최근 업데이트**: 2025-10-03 (JSON 구조 v2.0)
+- **최근 업데이트**: 2025-03-06 (JSON 구조 v2.0)
 
 ## 프로젝트 구조
 
@@ -358,7 +358,7 @@ Unity 메뉴 → Tools → Emoji → Rebuild Emoji Sprite Asset
 
 ## 개발 히스토리
 
-### JSON 구조 v2.0 업데이트 (2025-10-03)
+### JSON 구조 v2.0 업데이트 (2025-03-06)
 
 #### 업데이트 배경
 - QR Message Wall CMS와의 호환성을 위해 새로운 JSON 구조 지원 필요
