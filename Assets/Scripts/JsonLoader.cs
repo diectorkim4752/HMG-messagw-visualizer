@@ -62,6 +62,65 @@ public class JsonLoader : MonoBehaviour
         public string source;
         public string version;
     }
+    
+    /// <summary>
+    /// Config 파일의 루트 구조입니다.
+    /// </summary>
+    [System.Serializable]
+    private class ConfigData
+    {
+        public string version;
+        public string lastModified;
+        public JsonLoaderConfig jsonLoader;
+        public UIMovementConfig uiMovement;
+        public TextControllerConfig textController;
+    }
+    
+    /// <summary>
+    /// JsonLoader 설정 구조입니다.
+    /// </summary>
+    [System.Serializable]
+    private class JsonLoaderConfig
+    {
+        public string jsonFileName;
+        public int messagesToLoadCount;
+        public bool autoSpawnEnabled;
+        public float spawnInterval;
+        public bool autoRefresh;
+        public float refreshInterval;
+        public bool showDebugLogs;
+    }
+    
+    /// <summary>
+    /// UIMovement 설정 구조입니다.
+    /// </summary>
+    [System.Serializable]
+    private class UIMovementConfig
+    {
+        public float moveSpeed;
+        public Vector2Config moveDirection;
+        public float destroyTime;
+        public string designOrderMode;
+    }
+    
+    /// <summary>
+    /// Vector2 설정 구조입니다.
+    /// </summary>
+    [System.Serializable]
+    private class Vector2Config
+    {
+        public float x;
+        public float y;
+    }
+    
+    /// <summary>
+    /// TextController 설정 구조입니다.
+    /// </summary>
+    [System.Serializable]
+    private class TextControllerConfig
+    {
+        public bool showDebugLogs;
+    }
 
     [Header("파일 이름 설정")]
     [Tooltip("StreamingAssets 폴더에 있는 JSON 파일의 이름입니다. (확장자 포함. 예: messages.json)")]
@@ -110,6 +169,18 @@ public class JsonLoader : MonoBehaviour
     
     void Start()
     {
+        // Config 파일에서 설정 로드
+        StartCoroutine(LoadConfigAndInitialize());
+    }
+    
+    /// <summary>
+    /// Config 파일을 로드하고 초기화를 수행합니다.
+    /// </summary>
+    private IEnumerator LoadConfigAndInitialize()
+    {
+        // Config 파일 로드
+        yield return StartCoroutine(LoadConfig());
+        
         // 디버그: Start 메서드가 호출되었는지, autoRefresh의 상태가 어떤지 확인합니다.
         LogDebug($"Start() 호출됨. 자동 갱신: {autoRefresh}, 자동 생성: {autoSpawnEnabled}");
 
@@ -126,6 +197,69 @@ public class JsonLoader : MonoBehaviour
         if (autoSpawnEnabled)
         {
             StartCoroutine(SequentialSpawnRoutine());
+        }
+    }
+    
+    /// <summary>
+    /// config.json 파일을 로드하고 Inspector 값에 적용합니다.
+    /// </summary>
+    private IEnumerator LoadConfig()
+    {
+        string configPath = Path.Combine(Application.streamingAssetsPath, "config.json");
+        configPath = configPath.Replace('\\', '/');
+        
+        Debug.Log($"[JsonLoader] Config 파일 로드 시도: {configPath}");
+        
+        using (UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Get(configPath))
+        {
+            yield return www.SendWebRequest();
+            
+            if (www.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+            {
+                Debug.LogWarning($"[JsonLoader] Config 파일을 찾을 수 없습니다. 기본 설정을 사용합니다: {www.error}");
+                yield break;
+            }
+            
+            string configString = www.downloadHandler.text;
+            
+            try
+            {
+                ConfigData config = JsonUtility.FromJson<ConfigData>(configString);
+                
+                if (config != null && config.jsonLoader != null)
+                {
+                    // JsonLoader 설정 적용
+                    jsonFileName = config.jsonLoader.jsonFileName;
+                    messagesToLoadCount = config.jsonLoader.messagesToLoadCount;
+                    autoSpawnEnabled = config.jsonLoader.autoSpawnEnabled;
+                    spawnInterval = config.jsonLoader.spawnInterval;
+                    autoRefresh = config.jsonLoader.autoRefresh;
+                    refreshInterval = config.jsonLoader.refreshInterval;
+                    showDebugLogs = config.jsonLoader.showDebugLogs;
+                    
+                    Debug.Log($"[JsonLoader] ✅ Config 파일 로드 성공! (v{config.version}, {config.lastModified})");
+                    Debug.Log($"[JsonLoader] 설정 적용: jsonFileName={jsonFileName}, messagesToLoadCount={messagesToLoadCount}, autoSpawnEnabled={autoSpawnEnabled}");
+                    
+                    // UIMovementController 설정 적용 (나중에 수집된 컨트롤러들에 적용)
+                    if (config.uiMovement != null)
+                    {
+                        PlayerPrefs.SetFloat("Config_MoveSpeed", config.uiMovement.moveSpeed);
+                        PlayerPrefs.SetFloat("Config_MoveDirX", config.uiMovement.moveDirection.x);
+                        PlayerPrefs.SetFloat("Config_MoveDirY", config.uiMovement.moveDirection.y);
+                        PlayerPrefs.SetFloat("Config_DestroyTime", config.uiMovement.destroyTime);
+                        PlayerPrefs.SetString("Config_DesignMode", config.uiMovement.designOrderMode);
+                        PlayerPrefs.Save();
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("[JsonLoader] Config 파일 구조가 올바르지 않습니다. 기본 설정을 사용합니다.");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[JsonLoader] Config 파일 파싱 실패: {e.Message}");
+            }
         }
     }
 
@@ -151,9 +285,47 @@ public class JsonLoader : MonoBehaviour
         {
             uiMovementControllers.Add(controller);
             Debug.Log($"UIMovementController 발견: {controller.name}");
+            
+            // Config에서 로드한 설정 적용
+            ApplyConfigToController(controller);
         }
 
         Debug.Log($"총 {uiMovementControllers.Count}개의 UIMovementController를 수집했습니다.");
+    }
+    
+    /// <summary>
+    /// Config 설정을 UIMovementController에 적용합니다.
+    /// </summary>
+    private void ApplyConfigToController(UIMovementController controller)
+    {
+        if (controller == null) return;
+        
+        // PlayerPrefs에서 Config 값 읽기
+        if (PlayerPrefs.HasKey("Config_MoveSpeed"))
+        {
+            float moveSpeed = PlayerPrefs.GetFloat("Config_MoveSpeed");
+            float moveDirX = PlayerPrefs.GetFloat("Config_MoveDirX");
+            float moveDirY = PlayerPrefs.GetFloat("Config_MoveDirY");
+            float destroyTime = PlayerPrefs.GetFloat("Config_DestroyTime");
+            string designMode = PlayerPrefs.GetString("Config_DesignMode");
+            
+            // UIMovementController에 설정 적용
+            controller.moveSpeed = moveSpeed;
+            controller.moveDirection = new Vector2(moveDirX, moveDirY);
+            controller.destroyTime = destroyTime;
+            
+            // DesignOrderMode 적용
+            if (designMode == "Sequential")
+            {
+                controller.designOrderMode = UIMovementController.DesignOrderMode.Sequential;
+            }
+            else if (designMode == "Random")
+            {
+                controller.designOrderMode = UIMovementController.DesignOrderMode.Random;
+            }
+            
+            Debug.Log($"[JsonLoader] Config 설정 적용: {controller.name} - Speed={moveSpeed}, Direction=({moveDirX},{moveDirY}), DestroyTime={destroyTime}, Mode={designMode}");
+        }
     }
 
     /// <summary>
@@ -299,6 +471,76 @@ public class JsonLoader : MonoBehaviour
     {
         jsonFileName = "messages.json";
         Debug.Log($"테스트 파일명이 설정되었습니다: {jsonFileName}");
+    }
+    
+    [ContextMenu("Config 파일 테스트")]
+    public void TestConfigFile()
+    {
+        Debug.Log("=== Config 파일 테스트 ===");
+        StartCoroutine(TestConfigLoad());
+    }
+    
+    /// <summary>
+    /// Config 파일 로드 테스트
+    /// </summary>
+    private IEnumerator TestConfigLoad()
+    {
+        string configPath = Path.Combine(Application.streamingAssetsPath, "config.json");
+        configPath = configPath.Replace('\\', '/');
+        
+        Debug.Log($"Config 파일 경로: {configPath}");
+        
+        using (UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Get(configPath))
+        {
+            yield return www.SendWebRequest();
+            
+            if (www.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+            {
+                Debug.LogError($"❌ Config 파일 로드 실패: {www.error}");
+                yield break;
+            }
+            
+            string configString = www.downloadHandler.text;
+            Debug.Log($"✅ Config 파일 내용:\n{configString}");
+            
+            try
+            {
+                ConfigData config = JsonUtility.FromJson<ConfigData>(configString);
+                
+                if (config != null)
+                {
+                    Debug.Log($"✅ Config 파싱 성공!");
+                    Debug.Log($"  - Version: {config.version}");
+                    Debug.Log($"  - Last Modified: {config.lastModified}");
+                    
+                    if (config.jsonLoader != null)
+                    {
+                        Debug.Log($"  - JsonLoader Config:");
+                        Debug.Log($"    • jsonFileName: {config.jsonLoader.jsonFileName}");
+                        Debug.Log($"    • messagesToLoadCount: {config.jsonLoader.messagesToLoadCount}");
+                        Debug.Log($"    • autoSpawnEnabled: {config.jsonLoader.autoSpawnEnabled}");
+                        Debug.Log($"    • spawnInterval: {config.jsonLoader.spawnInterval}");
+                        Debug.Log($"    • autoRefresh: {config.jsonLoader.autoRefresh}");
+                        Debug.Log($"    • refreshInterval: {config.jsonLoader.refreshInterval}");
+                    }
+                    
+                    if (config.uiMovement != null)
+                    {
+                        Debug.Log($"  - UIMovement Config:");
+                        Debug.Log($"    • moveSpeed: {config.uiMovement.moveSpeed}");
+                        Debug.Log($"    • moveDirection: ({config.uiMovement.moveDirection.x}, {config.uiMovement.moveDirection.y})");
+                        Debug.Log($"    • destroyTime: {config.uiMovement.destroyTime}");
+                        Debug.Log($"    • designOrderMode: {config.uiMovement.designOrderMode}");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"❌ Config 파싱 실패: {e.Message}");
+            }
+        }
+        
+        Debug.Log("=== Config 파일 테스트 완료 ===");
     }
     
     [ContextMenu("새로운 JSON 구조 테스트")]

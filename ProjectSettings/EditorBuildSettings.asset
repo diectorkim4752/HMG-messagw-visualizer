@@ -6,6 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/v0623_Final.unity
-    guid: ef7d90072f316aa4f9e5a028572993c0
+    path: Assets/HMG-messagw-visualizer.unity
+    guid: a55e66d816c0ca94f8ff8d285a25354a
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

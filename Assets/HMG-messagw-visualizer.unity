@@ -928,7 +928,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   jsonFileName: messages.json
-  messagesToLoadCount: 30
+  messagesToLoadCount: 50
   autoSpawnEnabled: 1
   spawnInterval: 4.3
   loadedMessages: []

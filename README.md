@@ -99,7 +99,50 @@ HMG-messagw-visualizer/
 
 ## 🔧 핵심 시스템
 
-### 1. 메시지 관리 시스템 (`JsonLoader.cs`)
+### 1. 설정 시스템 (`config.json`) 🆕
+
+**역할**: 모든 Inspector 설정을 외부 파일로 관리
+
+#### Config 파일 구조
+```json
+{
+  "version": "1.0",
+  "lastModified": "2025-03-06",
+  "jsonLoader": {
+    "jsonFileName": "messages.json",
+    "messagesToLoadCount": 10,
+    "autoSpawnEnabled": true,
+    "spawnInterval": 10.0,
+    "autoRefresh": true,
+    "refreshInterval": 20.0,
+    "showDebugLogs": false
+  },
+  "uiMovement": {
+    "moveSpeed": 280.0,
+    "moveDirection": { "x": 1.0, "y": 0.0 },
+    "destroyTime": 35.0,
+    "designOrderMode": "Sequential"
+  },
+  "textController": {
+    "showDebugLogs": false
+  }
+}
+```
+
+#### 장점
+- ✅ **외부 파일 관리**: Unity를 열지 않고도 설정 변경 가능
+- ✅ **자동 적용**: 게임 시작 시 자동으로 Inspector 값에 적용
+- ✅ **버전 관리**: Config 파일도 Git으로 관리 가능
+- ✅ **빌드 후 수정**: 빌드된 게임의 설정도 변경 가능
+
+#### 사용 방법
+1. `Assets/StreamingAssets/config.json` 편집
+2. Unity 게임 실행 → 자동으로 설정 적용
+3. Context Menu → "Config 파일 테스트"로 검증
+
+---
+
+### 2. 메시지 관리 시스템 (`JsonLoader.cs`)
 
 **역할**: JSON 파일에서 메시지를 로드하고 UIMovementController에 전달
 
@@ -503,9 +546,10 @@ TextController → Show Debug Logs: ✅
 
 ### JsonLoader
 ```
+우클릭 → "Config 파일 테스트"                // Config 시스템 (신규)
 우클릭 → "StreamingAssets에서 JSON 파일 읽기"
 우클릭 → "즉시 5개 순차 생성"
-우클릭 → "새로운 JSON 구조 테스트"          // v2.0 신규
+우클릭 → "새로운 JSON 구조 테스트"          // v2.0
 우클릭 → "이모지 변환 테스트"
 우클릭 → "로드된 메시지의 이모지 코드포인트 분석"
 ```

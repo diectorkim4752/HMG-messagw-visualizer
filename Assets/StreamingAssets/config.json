@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "lastModified": "2025-03-06",
+  "jsonLoader": {
+    "jsonFileName": "messages.json",
+    "messagesToLoadCount": 10,
+    "autoSpawnEnabled": true,
+    "spawnInterval": 10.0,
+    "autoRefresh": true,
+    "refreshInterval": 20.0,
+    "showDebugLogs": false
+  },
+  "uiMovement": {
+    "moveSpeed": 280.0,
+    "moveDirection": {
+      "x": 1.0,
+      "y": 0.0
+    },
+    "destroyTime": 35.0,
+    "designOrderMode": "Sequential"
+  },
+  "textController": {
+    "showDebugLogs": false
+  }
+}
+
