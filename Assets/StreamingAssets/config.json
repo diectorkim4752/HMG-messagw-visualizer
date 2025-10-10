@@ -3,9 +3,9 @@
   "lastModified": "2025-03-06",
   "jsonLoader": {
     "jsonFileName": "messages.json",
-    "messagesToLoadCount": 10,
+    "messagesToLoadCount": 50,
     "autoSpawnEnabled": true,
-    "spawnInterval": 10.0,
+    "spawnInterval": 4.3,
     "autoRefresh": true,
     "refreshInterval": 20.0,
     "showDebugLogs": false

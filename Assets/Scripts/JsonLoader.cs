@@ -317,11 +317,11 @@ public class JsonLoader : MonoBehaviour
             // DesignOrderMode 적용
             if (designMode == "Sequential")
             {
-                controller.designOrderMode = UIMovementController.DesignOrderMode.Sequential;
+                controller.designOrderMode = DesignOrderMode.Sequential;
             }
             else if (designMode == "Random")
             {
-                controller.designOrderMode = UIMovementController.DesignOrderMode.Random;
+                controller.designOrderMode = DesignOrderMode.Random;
             }
             
             Debug.Log($"[JsonLoader] Config 설정 적용: {controller.name} - Speed={moveSpeed}, Direction=({moveDirX},{moveDirY}), DestroyTime={destroyTime}, Mode={designMode}");
